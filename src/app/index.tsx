@@ -37,7 +37,7 @@ export default function Index() {
 
   const addToDo = () => {
     const newTodo = {
-      id: Math.random(),
+      id: Date.now(),
       title: todoText,
       isdone: false
     }
