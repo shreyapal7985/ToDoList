@@ -34,35 +34,50 @@ export default function Index() {
 
   const [todos, setTodos] = useState<ToDoType[]>(todolist)
   const [todoText, setTodoText] = useState<string>('')
+
+  const addToDo = () => {
+    const newTodo = {
+      id: Math.random(),
+      title: todoText,
+      isdone: false
+    }
+    todos.push(newTodo);
+    setTodos(todos);
+    setTodoText('')
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+
+      //HEADER
       <View style={styles.header}>
 
-        <TouchableOpacity onPress={() => { }}>
+        <TouchableOpacity onPress={() => { }}>//FOR HOME ICON
           <Ionicons
             name="home"
             size={24}
             color={"black"} />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => { }}>
+        <TouchableOpacity onPress={() => { }}>//FOR IMAGE OF GIRL
           <Image source={{ uri: "https://xsgames.co/randomusers/assets/avatars/female/3.jpg" }}
             style={{ height: 40, width: 40, borderRadius: 20 }} />
         </TouchableOpacity>
 
       </View>
 
-      <View style={styles.searchBar}>
+      <View style={styles.searchBar}>// FOR SEARCHBAR
         <Ionicons
           name="search"
           size={24}
           color="#333" />
         <TextInput placeholder="search" style={styles.searchIput} clearButtonMode="always" />
-
       </View>
+
+      //TEXT DATA MIDDLE PART
       <Text>hello to do list application.</Text>
       <FlatList
-        data={todos}
+        data={[...todos].reverse()}//from todos.reverse to [...todos].reverse we destructring it because it only display the privously added data in reverse order recently added data it shows still at the end of list
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) =>
           <ToDoItems todo={item} />
@@ -70,13 +85,13 @@ export default function Index() {
       />
 
       //FOOTER SECTION
-      <KeyboardAvoidingView behavior={"padding"} style={styles.footer} keyboardVerticalOffset={10}>
+      <KeyboardAvoidingView behavior={"padding"} style={styles.footer} keyboardVerticalOffset={10}>//FOR KEYBOARD
 
-        <TextInput value={todoText} placeholder="add new todo" 
-        style={styles.newTodoInput}
-          onChangeText={(text) => setTodoText(text)} />
-          
-        <TouchableOpacity style={styles.addButton} onPress={() => { }}>
+        <TextInput value={todoText} placeholder="add new todo"
+          style={styles.newTodoInput}
+          onChangeText={(text) => setTodoText(text)} />//FOR ADD NEW TODO
+
+        <TouchableOpacity style={styles.addButton} onPress={() => addToDo()}>//FOR PLUS BUTTON AT END
           <Ionicons
             name="add"
             size={24}
