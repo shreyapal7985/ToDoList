@@ -36,6 +36,7 @@ export default function Index() {
   const [todos, setTodos] = useState<ToDoType[]>([])
   const [todoText, setTodoText] = useState<string>('')
   const [searchQuery,setSearchQuery]=useState<string>('')
+  const [oldTodos,setOldTodos]=useState<ToDoType[]>([])
 
   useEffect(()=>{
     const getTodos = async()=>{
