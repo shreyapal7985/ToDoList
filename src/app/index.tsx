@@ -44,6 +44,7 @@ export default function Index() {
 const todo=await AsyncStorage.getItem('my-todo')
 if(todo!==null){
 setTodos(JSON.parse(todo))
+setOldTodos(JSON.parse(todo))
 }
 
     }
@@ -62,6 +63,7 @@ setTodos(JSON.parse(todo))
       isdone: false
     }
     setTodos([...todos,newTodo])
+    setOldTodos(todos)
     await AsyncStorage.setItem('my-todo',JSON.stringify(todos))
     Keyboard.dismiss();
     setTodoText("")
@@ -76,6 +78,7 @@ setTodos(JSON.parse(todo))
       const newtodo=todos.filter((todo)=>todo.id!==id);
       await AsyncStorage.setItem('my-todo',JSON.stringify(newtodo)) 
       setTodos(newtodo)
+      setOldTodos(newtodo)
     }
     catch(error){
       console.log(error)
@@ -94,6 +97,7 @@ setTodos(JSON.parse(todo))
       })
       await AsyncStorage.setItem('my-todo',JSON.stringify(newTodo))
       setTodos(newTodo)
+      setOldTodos(newTodo)
     }
     catch(error){
       console.log(error)
@@ -102,9 +106,14 @@ setTodos(JSON.parse(todo))
   }
 
   const onSearch=(query: string)=>{
+    if(query == ''){
+      setTodos(oldTodos)
+    }
+    else{
     const filteredTodos= todos.filter((todo)=>
     todo.title.toLowerCase().includes(query.toLowerCase()))
     setTodos(filteredTodos)
+}
   }
   useEffect(()=>{
     onSearch(searchQuery)
