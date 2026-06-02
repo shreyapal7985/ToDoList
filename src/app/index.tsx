@@ -1,8 +1,9 @@
-import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, TextInput, KeyboardAvoidingView } from "react-native";
+import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Checkbox from 'expo-checkbox';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ToDoType = {
   id: number
@@ -17,7 +18,7 @@ export default function Index() {
     isdone: false
   },
   {
-    id: 1,
+    id: 2,
     title: 'todo 2',
     isdone: false
   },
@@ -32,19 +33,81 @@ export default function Index() {
     isdone: true
   }]
 
-  const [todos, setTodos] = useState<ToDoType[]>(todolist)
+  const [todos, setTodos] = useState<ToDoType[]>([])
   const [todoText, setTodoText] = useState<string>('')
+  const [searchQuery,setSearchQuery]=useState<string>('')
 
-  const addToDo = () => {
+  useEffect(()=>{
+    const getTodos = async()=>{
+      try{
+const todo=await AsyncStorage.getItem('my-todo')
+if(todo!==null){
+setTodos(JSON.parse(todo))
+}
+
+    }
+    catch(error){
+      console.log(error)
+    }
+  }
+  getTodos();
+  },[])
+
+  const addToDo = async() => {
+    try{
     const newTodo = {
-      id: Date.now(),
+      id: Date.now(),//it provides actual number
       title: todoText,
       isdone: false
     }
-    todos.push(newTodo);
-    setTodos(todos);
-    setTodoText('')
+    setTodos([...todos,newTodo])
+    await AsyncStorage.setItem('my-todo',JSON.stringify(todos))
+    Keyboard.dismiss();
+    setTodoText("")
   }
+  catch(error){
+    console.log(error)
+  }
+  }
+
+  const deleteTodo= async(id:number)=>{
+    try{
+      const newtodo=todos.filter((todo)=>todo.id!==id);
+      await AsyncStorage.setItem('my-todo',JSON.stringify(newtodo)) 
+      setTodos(newtodo)
+    }
+    catch(error){
+      console.log(error)
+    }
+
+  }
+
+
+  const handleDone= async (id:number)=>{
+    try{
+      const newTodo=todos.map((todo)=>{
+        if(todo.id === id){
+          todo.isdone =! todo.isdone;
+        }
+        return todo
+      })
+      await AsyncStorage.setItem('my-todo',JSON.stringify(newTodo))
+      setTodos(newTodo)
+    }
+    catch(error){
+      console.log(error)
+    }
+    
+  }
+
+  const onSearch=(query: string)=>{
+    const filteredTodos= todos.filter((todo)=>
+    todo.title.toLowerCase().includes(query.toLowerCase()))
+    setTodos(filteredTodos)
+  }
+  useEffect(()=>{
+    onSearch(searchQuery)
+  },[searchQuery])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,7 +134,10 @@ export default function Index() {
           name="search"
           size={24}
           color="#333" />
-        <TextInput placeholder="search" style={styles.searchIput} clearButtonMode="always" />
+        <TextInput placeholder="search" style={styles.searchIput} 
+        value={searchQuery}
+        onChangeText={(text)=>setSearchQuery(text)}
+        clearButtonMode="always" />
       </View>
 
       //TEXT DATA MIDDLE PART
@@ -80,7 +146,7 @@ export default function Index() {
         data={[...todos].reverse()}//from todos.reverse to [...todos].reverse we destructring it because it only display the privously added data in reverse order recently added data it shows still at the end of list
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) =>
-          <ToDoItems todo={item} />
+          <ToDoItems todo={item} deleteTodo={deleteTodo} handleTodo={handleDone}/>
         }
       />
 
@@ -103,13 +169,17 @@ export default function Index() {
   );
 }
 
-const ToDoItems = ({ todo }: { todo: ToDoType }) => (
+const ToDoItems = ({ todo, deleteTodo, handleTodo }: { todo: ToDoType, deleteTodo:(id:number)=>void
+  handleTodo:(id:number)=>void
+ }) => (
   <View style={styles.todoContainer}>
     <View style={styles.todoInfoContainer}>
-      <Checkbox value={todo.isdone} style={{ height: 16, width: 16 }} color={todo.isdone ? "#7c6ee9" : undefined} />
+      <Checkbox value={todo.isdone} onValueChange={()=>handleTodo(todo.id)}
+       style={{ height: 16, width: 16 }} color={todo.isdone ? "#7c6ee9" : undefined} />
       <Text style={[styles.todoText, todo.isdone && { textDecorationLine: 'line-through' }]}>{todo.title}</Text>
     </View>
-    <TouchableOpacity onPress={() => { }} >
+    <TouchableOpacity onPress={() => { 
+    deleteTodo(todo.id) }}>
       <Ionicons
         name="trash"
         size={24}
